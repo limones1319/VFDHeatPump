@@ -6,13 +6,22 @@
 // Set up a new SoftwareSerial object
 SoftwareSerial mySerial =  SoftwareSerial(rxPin, txPin);
 
-byte forward_command[] = {0x01, 0x06, 0x20, 0x00, 0x00, 0x01};
-byte stop_command[] = {0x01, 0x06, 0x20, 0x00, 0x00, 0x05};
-byte status_command[] = {0x01, 0x03, 0x30, 0x00, 0x00, 0x00};
-byte vfd_fault_command[] = {0x01, 0x03, 0x80, 0x00, 0x00, 0x00};
-byte comm_fault_command[] = {0x01, 0x03, 0x80, 0x01, 0x00, 0x00};
-byte comm_source_running_command[] = {0x01, 0x06, 0x00, 0x02, 0x00, 0x02}
-byte keypad_source_running_command[] = {0x01, 0x06, 0x00, 0x02, 0x00, 0x00}
+// Command mapping
+struct Command {
+  String name;
+  byte bytes[];
+  int size;
+};
+
+Command commands[] = {
+    {"FORWARD", {0x01, 0x06, 0x20, 0x00, 0x00, 0x01}, 6},
+    {"STOP", {0x01, 0x06, 0x20, 0x00, 0x00, 0x05}, 6},
+    {"STATUS", {0x01, 0x03, 0x30, 0x00, 0x00, 0x00}, 6},
+    {"VFDFAULT", {0x01, 0x03, 0x80, 0x00, 0x00, 0x00}, 6},
+    {"COMMFAULT", {0x01, 0x03, 0x80, 0x01, 0x00, 0x00}, 6},
+    {"COMM_SOURCE_RUNNING", {0x01, 0x06, 0x00, 0x02, 0x00, 0x02}, 6},
+    {"KEYPAD_SOURCE_RUNNING", {0x01, 0x06, 0x00, 0x02, 0x00, 0x00}, 6}
+};
 
 bool debug = false;
 bool prompt = false;
@@ -28,47 +37,46 @@ void setup()  {
 }
 
 void loop() {
-	String input_command = read_serial_input();
+    String input_command = read_serial_input();
 
-	if (input_command.equals("STATUS")) {
-		Serial.print("Received command: ");
-		Serial.println(input_command);
-		byte status = get_status(status_command, sizeof(status_command));
-	} else if (input_command.equals("VFDFAULT")) {
-		Serial.print("Received command: ");
-		Serial.println(input_command);
-		byte status = get_status(vfd_fault_command, sizeof(vfd_fault_command));
-	} else if (input_command.equals("COMMFAULT")) {
-		Serial.print("Received command: ");
-		Serial.println(input_command);
-		byte status = get_status(comm_fault_command, sizeof(comm_fault_command));
-	} else if (input_command.equals("START")) {
-		Serial.print("Received command: ");
-		Serial.println(input_command);
-		byte status = get_status(forward_command, sizeof(forward_command));
-	} else if (input_command.equals("STOP")) {
-		Serial.print("Received command: ");
-		Serial.println(input_command);
-		byte status = get_status(stop_command, sizeof(stop_command));
-	} else if (input_command.equals("DEBUG")) {
-	    prompt = true;
-	    Serial.print("Received command: ");
-	    if (debug == false) {
-	        debug = true;
-	        Serial.print(input_command);
-	        Serial.println(" is ON");
-	    } else {
-	        debug = false;
-	        Serial.print(input_command);
-	        Serial.println(" is OFF");
-	    }
-	} else if (input_command.length()>1) {
-	    Serial.println("UNKNOWN COMMAND");
-	} else if (!prompt) {
+    if (input_command.length() > 0) {
+        if (!executeCommand(input_command)) {
+            Serial.println("UNKNOWN COMMAND");
+        }
+    } else if (!prompt) {
         Serial.println("READY. ");
         Serial.print("#");
         prompt = true;
-	}
+    }
+}
+
+bool executeCommand(String input_command) {
+    for (const auto &cmd : commands) {
+        if (input_command.equals(cmd.name)) {
+            if (cmd.name.equals("DEBUG")) {
+                // Handle debug separately
+                toggleDebug();
+            } else {
+                Serial.print("Received command: ");
+                Serial.println(input_command);
+                byte status = get_status(cmd.bytes, cmd.size);
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+void toggleDebug() {
+    prompt = true;
+    Serial.print("Received command: DEBUG");
+    if (debug == false) {
+        debug = true;
+        Serial.println(" is ON");
+    } else {
+        debug = false;
+        Serial.println(" is OFF");
+    }
 }
 
 bool check_crc(byte response[], size_t size) {
