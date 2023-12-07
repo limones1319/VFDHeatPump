@@ -60,7 +60,7 @@ bool executeCommand(String input_command) {
             } else {
                 Serial.print("Received command: ");
                 Serial.println(input_command);
-                byte status = get_status(cmd.bytes, cmd.size);
+                byte status = compose_command(cmd.bytes, cmd.size);
             }
             return true;
         }
@@ -103,7 +103,7 @@ bool check_crc(byte response[], size_t size) {
     }
 }
 
-byte get_status(byte command[], int sizeOfCommand) {
+byte compose_command(byte command[], int sizeOfCommand) {
 
     prompt = false;
     // Set the status command
@@ -152,9 +152,7 @@ String read_serial_input() {
     while (Serial.available()) {
         input_str = Serial.readString();  //read until timeout
         input_str.trim();                        // remove any \r \n whitespace at the end of the String
-        Serial.read();
     }
-
 	return input_str;
 }
 
