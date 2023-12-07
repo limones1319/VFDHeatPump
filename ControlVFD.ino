@@ -9,7 +9,7 @@ SoftwareSerial mySerial =  SoftwareSerial(rxPin, txPin);
 // Command mapping
 struct Command {
   String name;
-  byte bytes[];
+  byte bytes[6];
   int size;
 };
 
@@ -20,7 +20,8 @@ Command commands[] = {
     {"VFDFAULT", {0x01, 0x03, 0x80, 0x00, 0x00, 0x00}, 6},
     {"COMMFAULT", {0x01, 0x03, 0x80, 0x01, 0x00, 0x00}, 6},
     {"COMM_SOURCE_RUNNING", {0x01, 0x06, 0x00, 0x02, 0x00, 0x02}, 6},
-    {"KEYPAD_SOURCE_RUNNING", {0x01, 0x06, 0x00, 0x02, 0x00, 0x00}, 6}
+    {"KEYPAD_SOURCE_RUNNING", {0x01, 0x06, 0x00, 0x02, 0x00, 0x00}, 6},
+    {"DEBUG", {0x00}, 1}
 };
 
 bool debug = false;
@@ -187,6 +188,11 @@ int send_command(byte vfd_response[], byte command[], int sizeOfCommand) {
 
 	if (debug == true) Serial.print("DEBUG: Command sent: ");
 
+	// Clear the serial buffer
+    while (mySerial.available()) {
+        mySerial.read();
+    }
+
 	for (int i=0; i<sizeOfCommand; i++) {
 		mySerial.write(command[i]);
 		if (debug == true) {
@@ -216,21 +222,6 @@ int send_command(byte vfd_response[], byte command[], int sizeOfCommand) {
 
     return (i);
 }
-
-/*
-byte read_response(void) {
-	delay(2);
-	int i = 0;
-	while (mySerial.available() > 0) {
-		int byte_response = mySerial.read();
-		vfd_response[i] = byte_response;
-		Serial.print(byte_response);
-		Serial.print(".");
-		i++;
-  }
-	return vfd_response; 
-}
-*/
 
 unsigned int crc_cal_value(unsigned char *data_value,int data_length) {
   int i;
