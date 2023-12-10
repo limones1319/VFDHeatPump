@@ -43,6 +43,7 @@ void loop() {
     if (input_command.length() > 0) {
         if (!executeCommand(input_command)) {
             Serial.println("UNKNOWN COMMAND");
+            prompt = false;
         }
     } else if (!prompt) {
         Serial.println("READY. ");
@@ -57,6 +58,7 @@ bool executeCommand(String input_command) {
             if (cmd.name.equals("DEBUG")) {
                 // Handle debug separately
                 toggleDebug();
+                prompt = false;
             } else {
                 Serial.print("Received command: ");
                 Serial.println(input_command);
