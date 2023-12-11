@@ -62,7 +62,7 @@ bool executeCommand(String input_command) {
             } else {
                 Serial.print("Received command: ");
                 Serial.println(input_command);
-                byte status = compose_command(cmd.bytes, cmd.size);
+                compose_command(cmd.bytes, cmd.size);
             }
             return true;
         }
@@ -105,7 +105,7 @@ bool check_crc(byte response[], size_t size) {
     }
 }
 
-byte compose_command(byte command[], int sizeOfCommand) {
+void compose_command(const byte command[], int sizeOfCommand) {
 
     prompt = false;
     // Set the status command
@@ -158,7 +158,7 @@ String read_serial_input() {
 	return input_str;
 }
 
-void monitor_print_array(byte array_to_print[], size_t size) {
+void monitor_print_array(const byte array_to_print[], size_t size) {
 	int i = 0;
 	for(size_t i=0;i<size;i++) {
 		Serial.print(convert_to_hex(array_to_print[i]));
@@ -223,7 +223,7 @@ int send_command(byte vfd_response[], byte command[], int sizeOfCommand) {
     return (i);
 }
 
-unsigned int crc_cal_value(unsigned char *data_value,int data_length) {
+unsigned int crc_cal_value(const unsigned char *data_value,int data_length) {
   int i;
   unsigned int crc_value = 0xffff;
 	while(data_length--) {
