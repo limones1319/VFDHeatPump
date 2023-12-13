@@ -203,7 +203,7 @@ int send_command(byte vfd_response[], byte command[], int sizeOfCommand) {
 
 	if (debug == true) Serial.println(" ");
 
-	delayMicroseconds(2917);
+	delayMicroseconds(6010);
 	int i = 0;
 
 	if (debug == true) Serial.print("DEBUG: Response received: ");
